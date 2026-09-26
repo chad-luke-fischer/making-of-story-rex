@@ -1,0 +1,739 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>The Making of story-rex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<meta name="description" content="How story-rex came to exist: a skill that weaves recorded conversations into literary stories in an Obsidian vault, told as a story.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F3EDFA">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#170F22">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%23F3EDFA%22/%3E%3Cpolygon%20points%3D%2216%2C3%2029%2C10.5%2016%2C18%22%20fill%3D%22%23A47EE0%22/%3E%3Cpolygon%20points%3D%223%2C10.5%2016%2C3%2016%2C18%22%20fill%3D%22%237C4FC7%22/%3E%3Cpolygon%20points%3D%223%2C10.5%2016%2C18%2016%2C29%22%20fill%3D%22%235B3494%22/%3E%3Cpolygon%20points%3D%2216%2C18%2029%2C10.5%2029%2C21.5%2016%2C29%22%20fill%3D%22%236B3AA0%22/%3E%3Cpolygon%20points%3D%223%2C10.5%203%2C21.5%2016%2C29%22%20fill%3D%22%233C1F63%22/%3E%3C/svg%3E">
+</head>
+<body>
+<style>
+/* ───────────── tokens: violet (wiki-dispatcher) ───────────── */
+:root{
+  color-scheme:light;
+  --bg:#F3EDFA; --bg-2:#E7DBF5; --card:#FBF7FE;
+  --ink:#241932; --ink-2:#4E3E63; --muted:#6F5D86; --line:#DBCBEE;
+  --terra:#7C4FC7; --terra-deep:#5B3494; --terra-hi:#A47EE0; --clay:#D9C2F2;
+  --code-bg:#241932; --code-ink:#EFE6FA; --code-dim:#B7A3CC;
+  --sage:#6F8462; --ochre:#C9922F; --slate:#6A7B8C; --focus:#7C4FC7;
+  /* globe ramps (verbatim from wiki-dispatcher); the book reads --land-* as leather, --cloud as paper */
+  --poly-0:#3C1F63;
+  --land-0:#3C1F63; --land-1:#512A80; --land-2:#6B3AA0; --land-3:#7C4FC7; --land-4:#9468D6; --land-5:#AB84E0;
+  --sea-0:#C9BBE0; --sea-1:#D6CBEA; --sea-2:#E1D8F1; --sea-3:#EAE3F6;
+  --cloud:#FFFDFC;
+
+  /* ── semantic roles of this page, mapped onto the violet system ── */
+  --link:var(--terra-deep);          /* accent used as text: links, selected step titles */
+  --on-terra:#FFF7F1;                /* text on a solid terra fill */
+  --rec:var(--terra);                /* recording: the blinking mark, timestamps, speaker labels, quote rules */
+  --rec-soft:var(--clay);            /* the selected step */
+  --flag:#8F6116;                    /* attribution held open: deep ochre, darkened for text contrast */
+  --ok:#5B7050;                      /* sage, darkened for pill-text contrast */
+  --far:var(--terra-deep);           /* horizon: someday */
+  --term-spk:var(--terra-hi);        /* speaker label inside a dark transcript block */
+  --term-cut:#EFC98A;                /* the dashed cut inside a dark transcript block */
+  --ink-3:var(--muted);              /* legacy token name: the stepper's JS still writes var(--ink-3) inline */
+  --gutter:clamp(16px,4vw,40px);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#170F22; --bg-2:#221733; --card:#1D1329;
+    --ink:#EDE4F7; --ink-2:#C7B6DE; --muted:#9884AD; --line:#3A2A50;
+    --terra:#A47EE0; --terra-deep:#7C4FC7; --terra-hi:#C3A3EA; --clay:#4A3468;
+    --code-bg:#120B1C; --code-ink:#EFE6FA; --code-dim:#9884AD;
+    --sage:#8FA582; --ochre:#D9A441; --slate:#8C9DAE; --focus:#C3A3EA;
+    --poly-0:#1C1030;
+    --land-0:#3D2760; --land-1:#4F3478; --land-2:#634392; --land-3:#7955AC; --land-4:#9070C4; --land-5:#A98CD8;
+    --sea-0:#1E1530; --sea-1:#2A1F40; --sea-2:#362A50; --sea-3:#423560;
+    --cloud:#EDE4F7;
+    --link:var(--terra-hi); --on-terra:#170F22;
+    --flag:#D9A441; --ok:#8FA582; --far:var(--terra-hi);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#170F22; --bg-2:#221733; --card:#1D1329;
+  --ink:#EDE4F7; --ink-2:#C7B6DE; --muted:#9884AD; --line:#3A2A50;
+  --terra:#A47EE0; --terra-deep:#7C4FC7; --terra-hi:#C3A3EA; --clay:#4A3468;
+  --code-bg:#120B1C; --code-ink:#EFE6FA; --code-dim:#9884AD;
+  --sage:#8FA582; --ochre:#D9A441; --slate:#8C9DAE; --focus:#C3A3EA;
+  --poly-0:#1C1030;
+  --land-0:#3D2760; --land-1:#4F3478; --land-2:#634392; --land-3:#7955AC; --land-4:#9070C4; --land-5:#A98CD8;
+  --sea-0:#1E1530; --sea-1:#2A1F40; --sea-2:#362A50; --sea-3:#423560;
+  --cloud:#EDE4F7;
+  --link:var(--terra-hi); --on-terra:#170F22;
+  --flag:#D9A441; --ok:#8FA582; --far:var(--terra-hi);
+}
+
+/* ───────────── base ───────────── */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;padding-inline:var(--gutter);padding-block:0 80px}
+.wrap{max-width:1040px;margin:0 auto}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+h1,h2,h3{font-family:var(--serif);font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0}
+.label{font-family:var(--sans);font-weight:700;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);line-height:1.4}
+.mono{font-family:var(--mono)}
+code,.inline-code{font-family:var(--mono);font-size:.88em;background:var(--bg-2);padding:.1em .4em;border-radius:3px}
+.facet{clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+
+/* ───────────── timeline rail (wd nav) ───────────── */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-inline:calc(-1 * var(--gutter));padding:0 var(--gutter)}
+@supports not (background:color-mix(in srgb,red,blue)){.rail{background:var(--bg)}}
+.rail-in{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:6px;min-height:56px;overflow-x:auto;scrollbar-width:none}
+.rail-in::-webkit-scrollbar{display:none}
+.rec-dot{width:11px;height:11px;background:var(--rec);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);flex:none;margin-right:8px;animation:blink 2.4s infinite}
+@keyframes blink{0%,60%{opacity:1}70%,100%{opacity:.25}}
+.rail a{font-family:var(--sans);font-weight:500;font-size:.9rem;text-decoration:none;color:var(--ink-2);white-space:nowrap;padding:6px 10px}
+.rail a:hover{color:var(--terra)}
+.rail a.on{color:var(--link);background:var(--clay)}
+.rail .sep{color:var(--line);flex:none}
+
+/* ───────────── hero (wd hero-grid + book, in the globe's slot) ───────────── */
+header.hero{position:relative;overflow:hidden;margin-inline:calc(-1 * var(--gutter));padding-inline:var(--gutter);padding-block:clamp(40px,7vw,88px) clamp(32px,5vw,64px);border-bottom:1px solid var(--line)}
+.hero-grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(28px,5vw,64px);align-items:center}
+.hero-copy{min-width:0}
+.hero .label{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--terra)}
+.hero .label .mono{color:var(--muted);font-weight:400}
+h1{font-weight:600;font-style:italic;font-size:clamp(2.1rem,4.6vw,3.2rem);line-height:1.04;letter-spacing:-.015em;margin:14px 0 0}
+h1 b{font-style:normal;font-weight:800;color:var(--terra-deep);letter-spacing:-.02em}
+.dek{margin-top:22px;font-size:clamp(1.02rem,1.5vw,1.2rem);line-height:1.5;color:var(--ink-2);max-width:52ch}
+.book{width:min(100%,460px);aspect-ratio:1;margin-inline:auto;position:relative;touch-action:manipulation}
+.book canvas{width:100%;height:100%;display:block}
+@media (max-width:880px){
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+  .book{order:-1;width:min(52vw,240px);margin-inline:auto}
+}
+
+/* stats (wd .stats: line-gapped cells, Fraunces numerals) */
+.stats{max-width:1040px;margin:clamp(32px,5vw,48px) auto 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.stat{display:flex;flex-direction:column;background:var(--card);padding:16px 18px;min-width:0}
+.stat .n{font-family:var(--serif);font-size:1.6rem;font-weight:700;color:var(--terra-deep);font-variant-numeric:tabular-nums;line-height:1.05}
+.stat .l{font-family:var(--sans);font-size:.78rem;letter-spacing:.04em;color:var(--muted);margin-top:6px}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:14px 16px}.stat .n{font-size:1.4rem}.stat:last-child{grid-column:1 / -1}}
+
+/* weave demo (the analogue of wd's terminal block under the hero-grid) */
+.weave{scroll-margin-top:72px;max-width:880px;margin:clamp(40px,6vw,72px) auto 0;background:var(--card);border:1px solid var(--line)}
+.weave-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font-family:var(--sans);font-weight:700;font-size:.82rem;padding:8px 14px;min-height:38px;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--terra);border-color:var(--terra);color:var(--on-terra)}
+.weave-meta{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.pane{padding:clamp(18px,3vw,28px);min-height:300px}
+.pane.raw{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:.83rem;line-height:1.75;white-space:pre-wrap}
+.pane.raw .spk{color:var(--term-spk);font-weight:600}
+.pane.raw .noise{color:var(--code-dim);font-style:italic}
+.pane.sum{font-size:.98rem;line-height:1.55;color:var(--ink-2)}
+.pane.sum ul{margin:12px 0 0;padding-left:20px}
+.pane.sum .verdict{margin-top:22px;font-family:var(--serif);font-style:italic;font-weight:500;color:var(--muted);font-size:1.02rem}
+.pane.story{font-size:1.02rem;line-height:1.6}
+.pane.story .hdr{font-family:var(--serif);font-style:italic;font-weight:500;color:var(--muted);font-size:.98rem;margin:0 0 12px}
+.pane.story p{margin:0 0 14px}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+blockquote{margin:18px 0;padding:14px 18px;border-left:3px solid var(--rec);background:var(--bg-2);font-family:var(--serif);font-style:italic;font-weight:500;font-size:1.12rem;line-height:1.45;max-width:60ch}
+.flag{font-family:var(--mono);font-size:.68em;font-style:normal;font-weight:400;color:var(--flag);background:var(--clay);padding:1px 6px;white-space:nowrap;cursor:help;vertical-align:.1em}
+
+/* ───────────── chapters ───────────── */
+section.ch{max-width:720px;margin:0 auto;padding-top:clamp(56px,8vw,96px);scroll-margin-top:64px}
+.ch-date{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ch-date .when{font-family:var(--mono);font-size:.78rem;color:var(--rec);font-weight:600;letter-spacing:.02em}
+h2{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.1;margin:10px 0 8px}
+.shape{font-family:var(--serif);font-style:italic;font-weight:500;color:var(--ink-2);font-size:1.08rem;margin:0 0 22px;max-width:62ch}
+section.ch p{margin:0 0 18px}
+.aside{font-size:.95rem;line-height:1.55;color:var(--ink-2);border-top:1px dashed var(--line);padding-top:14px;margin-top:22px}
+.aside b{color:var(--ink);font-weight:700}
+
+/* ───────────── day_watcher ───────────── */
+.days{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 14px;align-items:stretch}
+.days button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);padding:8px 12px 8px 8px;min-height:44px;max-width:220px}
+.days button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.days button[aria-checked="true"]{border-color:var(--terra);background:var(--clay)}
+.days .cal{display:flex;flex-direction:column;align-items:center;width:40px;flex:none;border:1px solid var(--line);background:var(--bg);line-height:1}
+.days .cal .m{width:100%;text-align:center;font-family:var(--sans);font-weight:800;font-size:.58rem;letter-spacing:.1em;color:var(--on-terra);background:var(--terra);padding:3px 0 2px}
+.days .cal .n{font-family:var(--serif);font-weight:700;font-size:1.15rem;color:var(--ink);padding:4px 0 5px}
+.days .dl{font-family:var(--sans);font-weight:600;font-size:.84rem;line-height:1.25;color:var(--ink-2)}
+.days button[aria-checked="true"] .dl{color:var(--link)}
+.days .more{align-self:center;font-family:var(--mono);font-size:.74rem;color:var(--muted);padding:0 4px}
+
+figure.dw{--dw-w:min(900px,calc(100vw - 2 * var(--gutter) - 16px));width:var(--dw-w);margin:26px 0 8px calc((100% - var(--dw-w)) / 2);padding:8px}
+figure.dw figcaption{max-width:720px;margin:0 auto 22px;font-size:.95rem;line-height:1.55;color:var(--ink-2)}
+.dw-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 108px minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:auto auto auto auto;gap:12px;padding:0}
+.dw-box{grid-column:1 / 5;grid-row:1 / 3;border:1.5px dashed var(--terra-hi);background:color-mix(in srgb,var(--card) 55%,transparent);margin:-8px}
+.dw-hd{grid-column:1 / 5;grid-row:1;position:relative;padding:4px 4px 0}
+.dw-path{font-size:.8rem;font-weight:600;color:var(--link);overflow-wrap:anywhere}
+.dw-node{position:relative;display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);padding:12px 14px;font-family:var(--sans);font-size:.86rem;line-height:1.4;color:var(--ink-2);min-width:0}
+.dw-node b{display:block;font-family:var(--mono);font-weight:600;font-size:.8rem;color:var(--ink);margin-bottom:3px}
+.dw-node span{display:block}
+.dw-node i{display:block;font-family:var(--serif);font-style:italic;font-size:.92rem;color:var(--ink);line-height:1.3;margin-top:3px}
+.ic{width:24px;height:24px;flex:none;fill:none;stroke:var(--terra);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+.dw-tr{grid-column:1;grid-row:2}
+.dw-wv{grid-column:2;grid-row:2;align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 6px;position:relative}
+.dw-wv-l{font-family:var(--sans);font-weight:600;font-size:.74rem;line-height:1.3;color:var(--ink-2)}
+.dw-st{grid-column:3;grid-row:2}
+.dw-pp{grid-column:4;grid-row:2}
+.dw-a{grid-column:4;grid-row:3;display:flex;align-items:center;gap:10px;padding:2px 0 2px 18px;font-family:var(--sans);font-size:.72rem;color:var(--muted)}
+.dw-ppl{grid-column:4;grid-row:4}
+.dw-v{background:var(--bg-2)}
+.dw-arrow{display:block;width:100%;max-width:64px;color:var(--terra)}
+.dw-arrow svg{display:block;width:100%;height:12px;overflow:visible}
+.dw-varrow{display:block;width:12px;height:44px;color:var(--terra);flex:none}
+.dw-varrow svg{display:block;width:12px;height:44px;overflow:visible}
+.dw-arrow line,.dw-varrow line{stroke:currentColor;stroke-width:1.6}
+.dw-arrow polygon,.dw-varrow polygon{fill:currentColor}
+@media (max-width:760px){
+  .dw-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .dw-box{grid-column:1;grid-row:1 / 6;margin:-8px}
+  .dw-hd{grid-column:1;grid-row:1}
+  .dw-tr{grid-column:1;grid-row:2}
+  .dw-wv{grid-column:1;grid-row:3;flex-direction:row;justify-content:center;padding:2px 0}
+  .dw-st{grid-column:1;grid-row:4}
+  .dw-pp{grid-column:1;grid-row:5}
+  .dw-a{grid-column:1;grid-row:6;margin-top:10px;padding-left:14px}
+  .dw-ppl{grid-column:1;grid-row:7}
+  .dw-arrow{display:none}
+  .dw-wv::before{content:"\2193";font-family:var(--sans);font-size:1.05rem;font-weight:700;color:var(--terra);line-height:1}
+  .days button{max-width:none;flex:1 1 150px}
+}
+
+/* ───────────── futures ───────────── */
+.futures{display:grid;gap:14px;margin-top:24px}
+.hz{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 4px}
+.hz button{font-family:var(--sans);font-weight:700;font-size:.82rem;border:1px solid var(--line);background:var(--card);color:var(--ink-2);padding:8px 14px;min-height:38px;cursor:pointer}
+.hz button[aria-pressed="true"]{background:var(--terra);border-color:var(--terra);color:var(--on-terra)}
+.fut{background:var(--card);border:1px solid var(--line);padding:18px 20px 16px;position:relative}
+.fut::before{content:"";position:absolute;top:-1px;left:-1px;width:calc(100% + 2px);height:4px;background:var(--muted);clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,6px 100%)}
+.fut:has(.pill.near)::before{background:var(--ok)}
+.fut:has(.pill.mid)::before{background:var(--flag)}
+.fut:has(.pill.far)::before{background:var(--far)}
+.fut-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.fut h3{font-family:var(--serif);font-weight:700;font-size:1.2rem;margin:0}
+.pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-weight:700;font-size:.78rem;letter-spacing:.02em;white-space:nowrap}
+.pill::before{content:"";width:10px;height:10px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:currentColor}
+.pill.near{color:var(--ok)}.pill.mid{color:var(--flag)}.pill.far{color:var(--far)}
+.fut p{margin:10px 0 0;font-size:.96rem;line-height:1.55;color:var(--ink-2)}
+.fut .seed{margin-top:12px;font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.fut .seed b{color:var(--ink-2);font-weight:600}
+
+/* ───────────── footer (wd colophon) ───────────── */
+footer{max-width:720px;margin:80px auto 0;padding-top:18px;border-top:1px solid var(--line);font-family:var(--sans);font-size:.82rem;color:var(--muted);display:flex;justify-content:space-between;gap:10px 24px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:.74rem}
+
+@media (max-width:560px){
+  .pane{padding:16px}
+  .pane.raw{font-size:.76rem}
+  blockquote{padding:12px 14px;font-size:1.05rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+
+<nav class="rail" aria-label="The arc">
+  <div class="rail-in">
+    <span class="rec-dot" aria-hidden="true"></span>
+    <a href="#tasting">The tasting</a><span class="sep">·</span>
+    <a href="#pitch">The pitch</a><span class="sep">·</span>
+    <a href="#machine">Inside day_watcher</a><span class="sep">·</span>
+    <a href="#become">What it can become</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<header class="hero" id="top">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="label"><span>A skill, told as a story</span><span aria-hidden="true">/</span><span class="mono" style="letter-spacing:0;text-transform:none">skills/story-rex/SKILL.md</span></div>
+      <h1>Summaries are for agents.<br><b>Humans think in stories.</b></h1>
+      <p class="dek">story-rex takes the recordings of a life (meetings, phone calls, a pocket recorder left running at a card show) and weaves them into literary stories in an Obsidian vault. It links and tags them, and checks every quote against the recording before a story counts as done. This page tells how it came to exist, following the same arc the vault tells about itself.</p>
+    </div>
+    <div class="book" role="img" aria-label="A low-poly antique book bound in violet leather with raised bands on the spine; it opens and its pages flutter when hovered or tapped">
+      <canvas id="book" aria-hidden="true" width="1" height="1"></canvas>
+    </div>
+  </div>
+  <div class="stats" aria-label="The vault as of Sept 20, 2026">
+    <div class="stat"><span class="n" data-to="137">137</span><span class="l">sessions</span></div>
+    <div class="stat"><span class="n" data-to="309">309</span><span class="l">stories</span></div>
+    <div class="stat"><span class="n" data-to="110">110</span><span class="l">people</span></div>
+    <div class="stat"><span class="n" data-to="338">338</span><span class="l">recordings</span></div>
+    <div class="stat"><span class="n">420/420</span><span class="l">quotes verbatim, last run</span></div>
+  </div>
+
+  <div class="weave" id="tasting" aria-label="One recording, three treatments">
+    <div class="weave-bar">
+      <div class="tabs" role="tablist" aria-label="Treatment">
+        <button role="tab" id="t-raw" aria-selected="false" aria-controls="p-raw">Transcript</button>
+        <button role="tab" id="t-sum" aria-selected="false" aria-controls="p-sum">Summary</button>
+        <button role="tab" id="t-story" aria-selected="true" aria-controls="p-story">Story</button>
+      </div>
+      <span class="weave-meta">12:29 PDT · May 2 · 5 labels, no names, 740 turns</span>
+    </div>
+
+    <div class="pane raw" role="tabpanel" id="p-raw" aria-labelledby="t-raw" hidden><span class="spk">Speaker A:</span> Went with a bunch of people.
+<span class="spk">Speaker C:</span> the chickens got out.
+<span class="spk">Speaker B:</span> No, they're not out. So.
+<span class="noise">…</span>
+<span class="spk">Speaker E:</span> How many people. Also, I'm curious on your name. I feel like I didn't. I should have caught that earlier.
+<span class="spk">Speaker B:</span> Oh, my name's Sue.
+<span class="spk">Speaker E:</span> Nice to meet you, Sue. I'm Chad. <span class="noise">…</span>
+<span class="spk">Speaker B:</span> So my son and I can cover all the tractor work and the running, the place, irrigation and spraying and everything. But we have a crew that we get in to do hand work in the vineyard.
+<span class="noise">…</span>
+<span class="spk">Speaker D:</span> What's the history of this place?
+<span class="spk">Speaker B:</span> So this was all redwood forest that they logged in 1850.
+<span class="noise">…</span>
+<span class="spk">Speaker B:</span> That's why they call it Stump Town.
+
+<span class="noise">Two hours, five voices, and the labels never say who anyone is.</span></div>
+
+    <div class="pane sum" role="tabpanel" id="p-sum" aria-labelledby="t-sum" hidden>
+      <div class="label">Meeting summary</div>
+      <ul>
+        <li>The group visited a vineyard and tasted wine.</li>
+        <li>The host discussed vineyard operations and local history.</li>
+        <li>Action items: none.</li>
+      </ul>
+      <p class="verdict">This is the summary that started story-rex. Two weeks later Chad told his brother about this recording: <q>several conversations going on at once in between different people… a summary can't do that.</q></p>
+    </div>
+
+    <div class="pane story" role="tabpanel" id="p-story" aria-labelledby="t-story">
+      <p class="hdr">Stump Town. A Saturday tasting at Porter-Bass, a small family vineyard, with strangers who become company for an hour. Shape: ensemble.</p>
+      <p>The host runs the place with her son and introduces herself mid-pour, <q>Oh, my name's Sue,</q> after Chad admits he should have caught it earlier. He wants to know how a vineyard this size gets worked. <q>So my son and I can cover all the tractor work and the running, the place, irrigation and spraying and everything. But we have a crew that we get in to do hand work in the vineyard.</q></p>
+      <p>Someone at the table asks about the history, and Sue gives the afternoon its name:</p>
+      <blockquote>So this was all redwood forest that they logged in 1850.</blockquote>
+      <blockquote>That's why they call it Stump Town.</blockquote>
+      <p>Five voices, one microphone, and no names in the labels. The story only knows who Sue and Chad are because each of them said so.</p>
+    </div>
+
+  </div>
+</header>
+
+<section class="ch" id="pitch">
+  <div class="ch-date"><span class="when">17:49 PDT · MAY 16, 2026</span><span class="label">Chapter one</span></div>
+  <h2>Stories, not summaries</h2>
+  <p class="shape">The pitch, made to his brother on a Saturday evening.</p>
+  <p>It started with a habit of pressing record. Granola took the meetings, Wispr Flow took the dictation, and the transcripts piled up. On a Sunday call on May 10, Chad told his brother what they were for:</p>
+  <blockquote>I'm not going to call it a weapon. But ammo… it's transcripts and my thoughts.</blockquote>
+  <p>He wanted <q>a data set that is Chad… then I can extend myself.</q> By May 16 he knew what to do with it. Granola's summaries were garbage on messy audio, and the tasting at the top of this page was the proof: two hours, overlapping conversations, strangers joining in. <q>A summary can't do that.</q> What did work was asking an agent to write it up as a story and link it into an LLM wiki. <q>I think it's the most powerful thing I've ever seen AI do.</q> The working name Claude gave it was <em>Storify</em>. That evening he called Sandy and said it out loud:</p>
+  <blockquote>I don't want to focus on summaries, I want to focus on stories.</blockquote>
+  <p>Sandy put its odds as a business at maybe two percent and gave it full marks as something worth doing. Chad answered with advice he'd taken from founders he admires: <q>build something that you love, and the rest will fall into place.</q></p>
+  <p class="aside"><b>The vision, as first stated:</b> not a product, but <q>the interface that lets everyone keep their own version of one story… when everything is recorded, that's the future I'm trying to design for.</q> It comes back at the end of the page.</p>
+</section>
+
+<section class="ch" id="machine">
+  <div class="ch-date"><span class="when">MAY → SEPT</span><span class="label">Interlude</span></div>
+  <h2>Inside day_watcher</h2>
+  <p class="shape">Every session gets a folder. There were 137 of them by Sept 20. Pick a day to open one.</p>
+
+  <div class="days" role="radiogroup" aria-label="Pick a day folder" id="days"></div>
+
+  <figure class="dw">
+    <figcaption>A day folder is one session, not a calendar day. It holds the transcripts, the stories woven from them, and a note for each person who was there. That note links to the person's single note in <span class="inline-code">_people/</span>, which links back, so a person can be followed across days.</figcaption>
+    <div class="dw-grid" id="dw" role="img" aria-label="Inside a day folder: one weaver reads the transcripts and writes the stories and a note for each person present. Each person note links both ways to that person's single note in _people.">
+      <div class="dw-box" aria-hidden="true"></div>
+      <div class="dw-hd"><span class="dw-path mono" id="dw-path">day_watcher/</span></div>
+
+      <div class="dw-node dw-tr"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/></svg><div><b>Transcripts/</b><span id="dw-tr"></span></div></div>
+
+      <div class="dw-wv"><span class="dw-arrow" aria-hidden="true"><svg viewBox="0 0 60 12"><line x1="0" y1="6" x2="52" y2="6"/><polygon points="52,1 60,6 52,11"/></svg></span><span class="dw-wv-l">one weaver reads it all</span></div>
+
+      <div class="dw-node dw-st"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5zM12 6v13"/></svg><div><b>Stories/</b><span id="dw-st"></span></div></div>
+      <div class="dw-node dw-pp"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.8 3.5-6 7-6s6.2 2.2 7 6"/></svg><div><b>People/</b><span id="dw-pp"></span></div></div>
+
+      <div class="dw-a"><span class="dw-varrow" aria-hidden="true"><svg viewBox="0 0 12 44"><line x1="6" y1="8" x2="6" y2="36"/><polygon points="1,8 6,0 11,8"/><polygon points="1,36 6,44 11,36"/></svg></span><span>linked both ways</span></div>
+      <div class="dw-node dw-v dw-ppl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.5"/><path d="M3 19c.6-3.2 2.9-5 6-5s5.4 1.8 6 5M15 14.2c2.8-.3 5 1.3 6 4.8"/></svg><div><b>_people/</b><span>one note per person, across every day</span></div></div>
+    </div>
+  </figure>
+
+</section>
+
+<section class="ch" id="become">
+  <div class="ch-date"><span class="when">SEPT 22 →</span><span class="label">Epilogue</span></div>
+  <h2>What it can become</h2>
+  <p class="shape">Each idea below already exists as a seed somewhere in the vault. Filter by how far off it is.</p>
+  <div class="hz" role="group" aria-label="Horizon">
+    <button aria-pressed="true" data-h="all">All</button>
+    <button aria-pressed="false" data-h="near">Next</button>
+    <button aria-pressed="false" data-h="mid">Soon</button>
+    <button aria-pressed="false" data-h="far">Someday</button>
+  </div>
+  <div class="futures" id="futures"></div>
+  <p class="aside" style="margin-top:28px"><b>Where the arc points:</b> the May 16 vision was <em>everyone keeping their own version of one story.</em> Each item above moves a vault built around one person a step closer to that.</p>
+</section>
+
+<footer>
+  <span>story-rex · woven on Fable | Astra · built from the vault, quotes verbatim</span>
+  <span class="tag">#story-rex #skill #meta/origin</span>
+</footer>
+</main>
+
+<script>
+(function(){
+  // weave tabs
+  const tabs=[...document.querySelectorAll('.tabs [role=tab]')];
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>{x.setAttribute('aria-selected',x===t);document.getElementById(x.getAttribute('aria-controls')).hidden=x!==t;});
+  }));
+
+  // day_watcher explorer (real folders from the vault)
+  const DAYS=[
+    {d:'2026-05-02',l:'Stump Town',tr:1,st:['Stump Town'],pp:['Sue'],note:'two hours, five voices'},
+    {d:'2026-05-16',l:'Sandy',tr:1,st:['Stories, Not Summaries'],pp:['Sandy']},
+    {d:'2026-06-04',l:'Greens Night',tr:5,st:['Let the Other Team Call the Ball','Story, Not Summary'],pp:1,note:'one evening, one session'},
+    {d:'2026-06-18',l:'Family Afternoon',tr:3,st:['A Swarm of Geniuses','My Name Is Chad',"Other People's Money","The Smell Claude Can't Taste",'The Toughest Part of the Walk'],pp:['Dad','Mom']},
+    {d:'2026-09-17',l:'The Washing Machine',tr:4,st:['Adobe Owns the IP',"Doesn't Hold Water",'No Slipping That Date','Six Months on a Loop'],pp:12,note:'one workday'}
+  ];
+  const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dayBox=document.getElementById('days');
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  dayBox.innerHTML=DAYS.map((x,i)=>{const [y,m,dd]=x.d.split('-');return '<button role="radio" aria-checked="false" data-i="'+i+'"><span class="cal"><span class="m">'+MON[+m-1]+'</span><span class="n">'+(+dd)+'</span></span><span class="dl">'+esc(x.l)+'</span></button>';}).join('')+'<span class="more">+132 more</span>';
+  const dbtn=[...dayBox.querySelectorAll('button')];
+  function showDay(i){
+    const x=DAYS[i];
+    dbtn.forEach((b,j)=>{b.setAttribute('aria-checked',i===j);b.tabIndex=i===j?0:-1;});
+    document.getElementById('dw-path').textContent='day_watcher/'+x.d+' '+x.l+'/';
+    document.getElementById('dw-tr').textContent=x.tr+(x.tr===1?' recording':' recordings')+(x.note?', '+x.note:'');
+    document.getElementById('dw-st').innerHTML=x.st.map(s=>'<i>'+esc(s)+'</i>').join('');
+    document.getElementById('dw-pp').textContent=Array.isArray(x.pp)?x.pp.join(', '):x.pp+(x.pp===1?' person':' people');
+  }
+  dbtn.forEach((b,i)=>{
+    b.addEventListener('click',()=>showDay(i));
+    b.addEventListener('keydown',e=>{
+      if(['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const f=e.key==='ArrowRight'||e.key==='ArrowDown'?1:-1;const n=(i+f+DAYS.length)%DAYS.length;dbtn[n].focus();showDay(n);}
+    });
+  });
+  showDay(0);
+
+  // futures
+  const F=[
+    {h:'near',t:'The April backfill',p:'About 80 meetings from before the first woven day are still unwoven. The run is ready and waiting on one word from you.',s:'<b>seed:</b> project-state · "backfill run 08 … fires only on user command"'},
+    {h:'near',t:'Chapters that write themselves',p:'The library already groups 309 stories into arcs. Next, the weaver proposes new chapters when a thread starts to recur, so a recurring thread gets its chapter without anyone asking for one.',s:'<b>seed:</b> _library/_index · 16 chapters, one flagged #future/chapter'},
+    {h:'near',t:'A skill that edits itself',p:'Each run already leaves traces. A pattern wiki compiles them, and a proposer stages one change at a time with a diff for approval. P-001, a fix to the watermark, is waiting now.',s:'<b>seed:</b> PURPOSE.md · skill-proposer · wiki-maintainer'},
+    {h:'mid',t:'The harvest agent, at work',p:'The same staging-and-weaving workflow, aimed at customer calls: a person note for every stakeholder, scored for how they feel about the product and kept in the team\'s shared "data envelope" so an account can be handed over cleanly.',s:'<b>seed:</b> "I created a sentiment analysis skill from that workflow that I use at work now"'},
+    {h:'mid',t:'More than Granola',p:'Granola is the first source. Voice memos, dictation and 26 years of email could go into the same day folders, with the same quote checks, woven only on request.',s:'<b>seed:</b> the email ingest project · Wispr Flow dictation'},
+    {h:'mid',t:'The classroom',p:'An open invitation to the computational linguistics department to show students how the stories get made, so they can see each step.',s:'<b>seed:</b> The Best Artist in the Class · Sept 11'},
+    {h:'far',t:'The autobiography',p:'Three hundred stories are already the drafts of a memoir. A long-form pass could turn a year of arcs into chapters, with every line still traceable to what was actually said.',s:'<b>seed:</b> "At some point the autobiography will probably go pretty hard."'},
+    {h:'far',t:'One story, many versions',p:'The first vision: two people at the same dinner, each with their own vault, each keeping their own true version of the evening, linked where they overlap. A family could have a shared history that nobody had to write down.',s:'<b>seed:</b> "the interface that lets everyone keep their own version of one story" · May 16'}
+  ];
+  const labels={near:'Next',mid:'Soon',far:'Someday'};
+  const box=document.getElementById('futures');
+  function drawF(h){
+    box.innerHTML=F.filter(f=>h==='all'||f.h===h).map(f=>'<article class="fut"><div class="fut-top"><h3>'+f.t+'</h3><span class="pill '+f.h+'">'+labels[f.h]+'</span></div><p>'+f.p+'</p><div class="seed">'+f.s+'</div></article>').join('');
+  }
+  const hb=[...document.querySelectorAll('.hz button')];
+  hb.forEach(b=>b.addEventListener('click',()=>{hb.forEach(x=>x.setAttribute('aria-pressed',x===b));drawF(b.dataset.h);}));
+  drawF('all');
+
+  // rail highlight
+  const links=[...document.querySelectorAll('.rail a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    let cur=-1;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)cur=i;});
+    links.forEach((a,i)=>a.classList.toggle('on',i===cur));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+</script>
+
+<script>
+/* ───────────── low-poly antique book ─────────────
+   Replaces the wiki-dispatcher globe in the same slot: same canvas and container, the same
+   IntersectionObserver pause, the same live prefers-reduced-motion and theme listeners, and every
+   colour is read from the page's own tokens at runtime (the globe's --land ramp is now the leather,
+   --cloud is the paper, --ochre the gilt). Rendered by hand on the 2D canvas: flat-shaded facets,
+   painter-sorted, no libraries.
+   Closed at rest. With a mouse, hovering swings the cover open and the leaves riffle on damped
+   springs driven by a staggered, dying gust; leaving lets them fall and the cover settle. Without
+   hover (touch), it plays once when it scrolls into view and then toggles on tap. Reduced motion
+   gets one composed still. The loop runs only while something is moving; idle costs nothing. */
+(function () {
+  const canvas = document.getElementById('book');
+  if (!canvas) return;
+  const box = canvas.parentElement, ctx = canvas.getContext('2d');
+  const rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const hov = window.matchMedia('(any-hover: hover)');    // only gates the one-time autoplay; a real mouse is trusted by its pointerType
+  let reduce = rmq.matches;
+  let S = 0, R = 0, dpr = 1;
+  let leather = [], paper = [], paste = [], gilt = [], ink = '#888', edge = '#999', glow = '#A47EE0', night = '#3C1F63';
+
+  // ── colour: everything comes from the page's tokens ──
+  function rgb(c) {
+    c = String(c).trim();
+    if (c[0] === '#') { const x = c.length === 4 ? c.slice(1).split('').map(k => k + k).join('') : c.slice(1), n = parseInt(x, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    const m = c.match(/[\d.]+/g); return m ? m.slice(0, 3).map(Number) : [128, 128, 128];
+  }
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')'; };
+  const hexA = (c, a) => 'rgba(' + rgb(c).join(',') + ',' + a + ')';
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement), v = (n, d) => cs.getPropertyValue(n).trim() || d;
+    const bg = rgb(v('--bg', '#F3EDFA')), dark = (bg[0] * 0.299 + bg[1] * 0.587 + bg[2] * 0.114) < 128;
+    leather = []; for (let i = 0; i < 6; i++) leather.push(v('--land-' + i, '#7C4FC7'));
+    const cloud = v('--cloud', '#FFFDFC'), muted = v('--muted', '#6F5D86'), clay = v('--clay', '#D9C2F2'), ochre = v('--ochre', '#C9922F');
+    const white = dark ? mix(cloud, muted, 0.16) : cloud;      // on a dark ground, paper this bright would shout
+    const shadowPaper = mix(white, muted, 0.5);
+    paper = []; for (let i = 0; i < 6; i++) paper.push(mix(shadowPaper, white, i / 5));
+    const pd = mix(white, clay, 0.45); paste = [mix(pd, muted, 0.4), pd, mix(pd, white, 0.4)];
+    gilt = [mix(ochre, leather[0], 0.4), ochre, mix(ochre, white, 0.4)];
+    ink = mix(muted, white, 0.3); edge = mix(white, muted, 0.6);
+    glow = dark ? v('--terra-hi', '#A47EE0') : v('--terra', '#7C4FC7');            // on the pale ground the aura needs the deeper violet to give white paper an edge
+    night = v('--poly-0', '#3C1F63');
+  }
+
+  // ── geometry: book units, x across the cover from the spine, y along the spine, z up out of the cover ──
+  const W = 1, H = 1.36, C = 0.06, N = 14, DZ = 0.018, T = N * DZ, GAP = 0.004, WP = 0.95, HP = 1.28, SP = 0.09;
+  const COVER_OPEN = 2.95, FAN = 2.5, PI = Math.PI;
+  const PSI = 32 * PI / 180, EPS = 38 * PI / 180, cS = Math.cos(PSI), sS = Math.sin(PSI), cE = Math.cos(EPS), sE = Math.sin(EPS);
+  const D = [sS * cE, cS * cE, -sE];                      // the viewing direction: depth grows along it
+  const norm = v => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+  const L = norm([-0.45, -0.5, 0.74]);                     // light from the upper left, in front, as the globe had it
+  let X0 = 0.39, Y0 = 0.40;                                // where the book sits in the square; X0 pans as it opens
+  function P(p) { const xp = p[0] * cS - p[1] * sS, yp = p[0] * sS + p[1] * cS; return [S / 2 + (xp - X0) * R, S / 2 - (yp * sE + p[2] * cE - Y0) * R, yp * cE - p[2] * sE]; }
+
+  const hash = (i, j) => { const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const sm = t => t * t * (3 - 2 * t), clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const sstep = (a, b, x) => sm(clamp((x - a) / (b - a), 0, 1));
+  const noise1 = x => { const i = Math.floor(x), f = sm(x - i); return hash(i, 7) + (hash(i + 1, 7) - hash(i, 7)) * f; };
+
+  // ── facets: flat-shaded from a ramp, dithered facet to facet, sorted far to near ──
+  let polys = [], G = 0;                                   // G: draw group; depth sorting only has to be right inside a group
+  function shade(n, ramp, sa, sb, dither) {
+    const lit = n[0] * L[0] + n[1] * L[1] + n[2] * L[2];
+    const spread = clamp((lit + 0.35) / 1.3, 0, 1), top = ramp.length - 1;
+    return ramp[clamp(Math.round(spread * top + (hash(sa, sb) - 0.5) * 0.9 + (dither || 0)), 0, top)];
+  }
+  function face(pts, n, ramp, sa, sb, dither, opt) {
+    opt = opt || {};
+    if (n[0] * D[0] + n[1] * D[1] + n[2] * D[2] > 0) { if (!opt.two) return; n = [-n[0], -n[1], -n[2]]; }
+    const pr = pts.map(P); let d = 0; for (const q of pr) d += q[2]; d /= pr.length;
+    const f = shade(n, ramp, sa, sb, dither);
+    polys.push({ g: G, p: pr, d: d + (opt.bias || 0), f, s: opt.stroke || f, w: opt.w || 0.7 });
+  }
+  function line(pts, col, w, bias, n, closed) {
+    if (n && n[0] * D[0] + n[1] * D[1] + n[2] * D[2] > 0) return;
+    const pr = pts.map(P); let d = 0; for (const q of pr) d += q[2]; d /= pr.length;
+    polys.push({ g: G, p: pr, d: d + (bias || 0), f: null, s: col, w: w || 1, open: !closed });
+  }
+  function nrm(A, B, Cc) {
+    const n = [(B[1] - A[1]) * (Cc[2] - A[2]) - (B[2] - A[2]) * (Cc[1] - A[1]), (B[2] - A[2]) * (Cc[0] - A[0]) - (B[0] - A[0]) * (Cc[2] - A[2]), (B[0] - A[0]) * (Cc[1] - A[1]) - (B[1] - A[1]) * (Cc[0] - A[0])];
+    return norm(n);
+  }
+
+  // a board: pastedown inside, leather outside, four edges; the front board's leather is a jittered facet grid
+  function board(a, hz, front) {
+    const ca = Math.cos(a), sa = Math.sin(a), u = [ca, 0, sa], w = [-sa, 0, ca];
+    const pt = (x, y, z) => [u[0] * x + w[0] * z, y, hz + u[2] * x + w[2] * z];
+    const zi = front ? 0 : C, seed = front ? 3 : 9;
+    face([pt(0, -H / 2, zi), pt(W, -H / 2, zi), pt(W, H / 2, zi), pt(0, H / 2, zi)], front ? [-w[0], 0, -w[2]] : w, paste, seed, 1, 0);
+    face([pt(W, -H / 2, 0), pt(W, H / 2, 0), pt(W, H / 2, C), pt(W, -H / 2, C)], u, leather, seed, 2, 1);
+    face([pt(0, -H / 2, 0), pt(0, H / 2, 0), pt(0, H / 2, C), pt(0, -H / 2, C)], [-u[0], 0, -u[2]], leather, seed, 3, 0.6);
+    face([pt(0, -H / 2, 0), pt(W, -H / 2, 0), pt(W, -H / 2, C), pt(0, -H / 2, C)], [0, -1, 0], leather, seed, 4, 1);
+    face([pt(0, H / 2, 0), pt(W, H / 2, 0), pt(W, H / 2, C), pt(0, H / 2, C)], [0, 1, 0], leather, seed, 5, 1);
+    if (!front) { face([pt(0, -H / 2, 0), pt(W, -H / 2, 0), pt(W, H / 2, 0), pt(0, H / 2, 0)], [-w[0], 0, -w[2]], leather, seed, 6, 0); return; }
+    const NX = 4, NY = 5, V = [];
+    for (let j = 0; j <= NY; j++) { V.push([]); for (let i = 0; i <= NX; i++) { const inner = i > 0 && i < NX && j > 0 && j < NY; V[j].push(pt(W * i / NX, -H / 2 + H * j / NY, C + (inner ? (hash(i, j + 20) - 0.5) * 0.024 : 0))); } }
+    const tri = (A, B, Cc, i, j, wear) => { let n = nrm(A, B, Cc); if (n[0] * w[0] + n[2] * w[2] < 0) n = [-n[0], -n[1], -n[2]]; face([A, B, Cc], n, leather, i + 11, j, wear); };
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const A = V[j][i], B = V[j][i + 1], Cc = V[j + 1][i + 1], Dd = V[j + 1][i];
+      const cx = (i + 0.5) / NX, cy = (j + 0.5) / NY;                          // worn corners read a step lighter
+      const wear = 1.4 * Math.max(0, 1 - Math.min(Math.hypot(cx, cy), Math.hypot(1 - cx, cy), Math.hypot(cx, 1 - cy), Math.hypot(1 - cx, 1 - cy)) / 0.36);
+      if ((i + j) % 2) { tri(A, B, Cc, i, j, wear); tri(A, Cc, Dd, i, j + 7, wear); } else { tri(A, B, Dd, i, j, wear); tri(B, Cc, Dd, i, j + 7, wear); }
+    }
+    // gilt: a tooled frame and a lozenge, the page's own diamond motif
+    const zg = C + 0.003, m = 0.085;
+    line([pt(m, -H / 2 + m, zg), pt(W - m, -H / 2 + m, zg), pt(W - m, H / 2 - m, zg), pt(m, H / 2 - m, zg)], hexA(gilt[1], 0.8), 1, -0.004, w, true);
+    const dx = W / 2, dy = 0, r = 0.075;
+    face([pt(dx, dy - r * 1.35, zg), pt(dx + r, dy, zg), pt(dx, dy + r * 1.35, zg), pt(dx - r, dy, zg)], w, gilt, 5, 5, 0, { bias: -0.004 });
+  }
+
+  // the spine: a hollow back in four facets, five raised bands, gilt lines beside each band
+  const O = [[0, -C], [-SP * 0.72, -C + 0.06], [-SP, (T + GAP) / 2], [-SP * 0.72, T + GAP + C - 0.06], [0, T + GAP + C]];
+  const BANDS = [-0.42, -0.21, 0, 0.21, 0.42], BW = 0.03;
+  function spine() {
+    const ys = [-H / 2]; for (const yc of BANDS) ys.push(yc - BW, yc + BW); ys.push(H / 2);
+    for (let k = 0; k < 4; k++) {
+      const [x0, z0] = O[k], [x1, z1] = O[k + 1], n = norm([-(z1 - z0), 0, x1 - x0]);
+      for (let s = 0; s + 1 < ys.length; s++) face([[x0, ys[s], z0], [x1, ys[s], z1], [x1, ys[s + 1], z1], [x0, ys[s + 1], z0]], n, leather, k + 30, s, 0);
+    }
+    face(O.map(([x, z]) => [x, -H / 2, z]), [0, -1, 0], leather, 40, 1, 0.5);
+    face(O.map(([x, z]) => [x, H / 2, z]), [0, 1, 0], leather, 40, 2, 0.5);
+    const B = [O[1], [O[1][0] - 0.02, O[1][1]], [O[2][0] - 0.022, O[2][1]], [O[3][0] - 0.02, O[3][1]], O[3]];
+    BANDS.forEach((yc, bi) => {
+      for (let k = 0; k < 4; k++) {
+        const [x0, z0] = B[k], [x1, z1] = B[k + 1], n = norm([-(z1 - z0), 0, x1 - x0]);
+        face([[x0, yc - BW, z0], [x1, yc - BW, z1], [x1, yc + BW, z1], [x0, yc + BW, z0]], n, leather, k + 45, bi, 0.9, { bias: -0.01 });
+      }
+      face(B.map(([x, z]) => [x, yc - BW, z]), [0, -1, 0], leather, 41, bi, 0.5, { bias: -0.01 });
+      for (const y of [yc - BW - 0.022, yc + BW + 0.022]) line([O[1], O[2], O[3]].map(([x, z]) => [x - 0.004, y, z]), hexA(gilt[1], 0.85), 1, -0.06);
+    });
+  }
+
+  // the leaves: each a three-segment chain so it can curl, with its tail edge showing as a thin lit strip
+  const LS = [0.34, 0.33, 0.33].map(f => f * WP);
+  function leaf(l, i, exposed) {
+    const segs = []; let ox = 0, oz = i * DZ;
+    for (let j = 0; j < 3; j++) { const th = l.a + l.b * j, c = Math.cos(th), s = Math.sin(th); segs.push({ ox, oz, ux: c, uz: s, wx: -s, wz: c }); ox += c * LS[j]; oz += s * LS[j]; }
+    const pt = (g, lx, y, zo) => [g.ox + g.ux * lx + g.wx * zo, y, g.oz + g.uz * lx + g.wz * zo];
+    const bias = (l.a < PI / 2 ? -1 : 1) * i * 0.0004;                        // a tiebreak only; far smaller than one leaf's thickness in depth
+    for (let j = 0; j < 3; j++) {
+      const g = segs[j], Lj = LS[j];
+      face([pt(g, 0, -HP / 2, DZ), pt(g, Lj, -HP / 2, DZ), pt(g, Lj, HP / 2, DZ), pt(g, 0, HP / 2, DZ)], [g.wx, 0, g.wz], paper, i + 50, j, 0, { two: true, bias });
+      face([pt(g, 0, -HP / 2, 0), pt(g, Lj, -HP / 2, 0), pt(g, Lj, -HP / 2, DZ), pt(g, 0, -HP / 2, DZ)], [0, -1, 0], paper, i + 60, j, -0.6, { bias, stroke: hexA(edge, 0.7), w: 0.5 });
+    }
+    if (!exposed) return;
+    for (let k = 0; k < 5; k++) {                                                // a few lines of text, following the curl
+      const y = -HP / 2 + HP * (0.2 + 0.15 * k), pts = [];
+      for (const f of [0.12, 0.34, 0.67, 0.86]) { const lx = f * WP; let j = 0, acc = 0; while (j < 2 && lx > acc + LS[j]) { acc += LS[j]; j++; } pts.push(pt(segs[j], lx - acc, y, DZ)); }
+      line(pts, hexA(ink, 0.55), 0.8, bias - 0.004);
+    }
+  }
+
+  // a silk marker, hanging from the tail and lying on the table
+  function ribbon() {
+    const x = 0.5, y0 = -HP / 2, z0 = 3 * DZ, hw = 0.026;
+    const q = (a, b, c, d, n, sd) => face([a, b, c, d], n, gilt, 70, sd, 0);
+    q([x - hw, y0, z0], [x + hw, y0, z0], [x + hw + 0.01, y0 - 0.06, -C], [x - hw + 0.01, y0 - 0.06, -C], norm([0, -1, 0.6]), 1);
+    q([x - hw + 0.01, y0 - 0.06, -C], [x + hw + 0.01, y0 - 0.06, -C], [x + hw + 0.07, y0 - 0.26, -C], [x - hw + 0.07, y0 - 0.26, -C], [0, 0, 1], 2);
+    q([x - hw + 0.07, y0 - 0.26, -C], [x + hw + 0.07, y0 - 0.26, -C], [x + hw + 0.16, y0 - 0.34, -C], [x - hw + 0.16, y0 - 0.34, -C], [0, 0, 1], 3);
+  }
+
+  // halo behind (the globe's atmosphere, kept), and a soft shadow pushed away from the light
+  function ground(coverA) {
+    const cx = S / 2, cy = S / 2 + S * 0.03;
+    const g = ctx.createRadialGradient(cx, cy, S * 0.16, cx, cy, S * 0.5);
+    g.addColorStop(0, hexA(glow, 0.3)); g.addColorStop(0.55, hexA(glow, 0.11)); g.addColorStop(1, hexA(glow, 0));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+    const xmin = Math.min(-SP, W * Math.cos(coverA)) - 0.05;
+    const fp = [[xmin, -H / 2 - 0.05], [W + 0.05, -H / 2 - 0.05], [W + 0.05, H / 2 + 0.05], [xmin, H / 2 + 0.05]].map(p => P([p[0] + 0.07, p[1] + 0.09, -C]));
+    let mx = 0, my = 0; for (const p of fp) { mx += p[0] / 4; my += p[1] / 4; }
+    for (let k = 0; k < 4; k++) {
+      const s = 1 + k * 0.05; ctx.fillStyle = hexA(night, 0.075 - k * 0.012);
+      ctx.beginPath(); fp.forEach((p, i) => { const x = mx + (p[0] - mx) * s, y = my + (p[1] - my) * s; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // ── state ──
+  const leaves = []; for (let i = 0; i < N; i++) leaves.push({ a: 0, v: 0, b: 0, mode: 0, at: 0 });
+  const cov = { a: 0, v: 0, mode: 0, at: 0 };
+  let open = false, tOpen = -1e9, atRest = true;
+  const baseFan = i => FAN * Math.pow(sstep(0.38, 1, i / (N - 1)), 1.5);
+  const lift = i => sstep(0.1, 0.75, i / (N - 1));
+  function spring(o, target, w, z, dt) { o.v += (w * w * (target - o.a) - 2 * z * w * o.v) * dt; o.a += o.v * dt; }
+  function bends() { for (const l of leaves) l.b = clamp(-l.v * 0.045, -0.3, 0.3) + 0.3 * (l.a - PI / 2) * Math.sin(l.a); } // the tip lags the root, and droops
+
+  // paper has weight and meets air: damped springs, a gust that rises then dies, contact that takes the bounce out
+  function step(dt, t) {
+    if (t >= cov.at) cov.mode = open ? 1 : 0;
+    for (const l of leaves) if (t >= l.at) l.mode = open ? 1 : 0;
+    const age = t - tOpen, env = open ? (1 - Math.exp(-age / 0.25)) * Math.max(0, Math.exp(-age / 1.2) - 0.04) / 0.96 : 0;   // rises, dies, and is truly zero by ~4 s so the loop can stop
+    const h = dt / 2;
+    for (let k = 0; k < 2; k++) {
+      const tk = t + k * h;
+      spring(cov, cov.mode ? COVER_OPEN : 0, cov.mode ? 5.5 : 4, cov.mode ? 0.7 : 0.95, h);
+      if (cov.a < 0) { cov.a = 0; cov.v = -cov.v * 0.15; }
+      if (cov.a > PI) { cov.a = PI; cov.v = 0; }
+      for (let i = 0; i < N; i++) {
+        const l = leaves[i], s = i / (N - 1);
+        const g = env * 0.42 * lift(i) * (0.55 * Math.sin(7 * tk - i * 0.62) + 0.9 * (noise1(tk * 1.9 + i * 0.37) - 0.5));
+        spring(l, l.mode ? baseFan(i) + g : 0, l.mode ? 8.5 + 5 * s : 6.5, l.mode ? 0.36 : 0.85, h);
+      }
+      let hi = Math.max(0, cov.a - 0.05), hv = cov.v;                         // leaves nest: none passes the one above, none sinks into the block
+      for (let i = N - 1; i >= 0; i--) {
+        const l = leaves[i];
+        if (l.a > hi) { l.a = hi; if (l.v > hv) l.v = hv; }
+        if (l.a < 0) { l.a = 0; l.v = -l.v * 0.12; }
+        hi = l.a; hv = l.v;
+      }
+    }
+    bends();
+    let rest = env <= 0 && t >= cov.at && Math.abs(cov.v) < 0.01 && Math.abs(cov.a - (cov.mode ? COVER_OPEN : 0)) < 0.004;
+    for (let i = 0; i < N && rest; i++) { const l = leaves[i]; rest = t >= l.at && Math.abs(l.v) < 0.03 && Math.abs(l.a - (l.mode ? baseFan(i) : 0)) < 0.02; }
+    if (rest) { atRest = true; cov.a = cov.mode ? COVER_OPEN : 0; cov.v = 0; leaves.forEach((l, i) => { l.a = l.mode ? baseFan(i) : 0; l.v = 0; }); bends(); }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, S, S);
+    X0 = 0.39 - 0.39 * (cov.a / COVER_OPEN);
+    ground(cov.a);
+    polys = [];
+    // the front board is always outside the stack of leaves: it goes over them exactly when its leather faces the camera
+    const coverOnTop = -Math.sin(cov.a) * D[0] + Math.cos(cov.a) * D[2] < 0;
+    G = 0; board(0, -C, false); spine(); ribbon();
+    G = coverOnTop ? 1 : 2; for (let i = 0; i < N; i++) leaf(leaves[i], i, i === N - 1 || leaves[i + 1].a - leaves[i].a > 0.12 || leaves[i].a > 0.12);
+    G = coverOnTop ? 2 : 1; board(cov.a, T + GAP, true);
+    polys.sort((p, q) => p.g - q.g || q.d - p.d);
+    ctx.lineJoin = 'round';
+    for (const p of polys) {
+      ctx.beginPath(); p.p.forEach((q, k) => k ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); if (!p.open) ctx.closePath();
+      if (p.f) { ctx.fillStyle = p.f; ctx.fill(); }
+      if (p.s) { ctx.strokeStyle = p.s; ctx.lineWidth = p.w; ctx.stroke(); }
+    }
+  }
+
+  function reset() { open = false; atRest = true; cov.a = cov.v = cov.mode = 0; for (const l of leaves) l.a = l.v = l.b = l.mode = 0; }
+  function still() {                                                             // reduced motion: cover part-open, leaves mid-fan, drawn once
+    reset(); cov.a = 2.05; cov.mode = 1;
+    let hi = cov.a - 0.05;
+    for (let i = N - 1; i >= 0; i--) { const l = leaves[i]; l.a = clamp(baseFan(i) * 0.92 + 0.32 * lift(i) * Math.sin(2.4 - i * 0.62), 0, hi); hi = l.a; }
+    bends();
+  }
+
+  // ── the loop: only while something moves ──
+  let raf = null, lastT = 0, visible = true;
+  function kick() { if (reduce || !visible || document.hidden || raf) return; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+  function loop(now) { raf = null; const dt = clamp((now - lastT) / 1000, 0.001, 0.05); lastT = now; step(dt, now / 1000); draw(); if (!atRest) raf = requestAnimationFrame(loop); }
+  function setOpen(o) {
+    if (reduce || open === o) return;
+    open = o; const t = performance.now() / 1000;
+    if (o) tOpen = t;
+    leaves.forEach((l, i) => { l.at = t + (o ? 0.12 + (N - 1 - i) * 0.045 : i * 0.03); });   // opening: top leaf first; closing: the block refills from the bottom
+    cov.at = t + (o ? 0 : 0.35);                                                           // the board lands after the leaves are down
+    atRest = false; kick();
+  }
+
+  function size() {
+    const rect = box.getBoundingClientRect();
+    S = Math.max(1, Math.floor(rect.width)); dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = S * dpr; canvas.height = S * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    R = S * 0.39;                                                                // measured: the open book, cover upright mid-swing, stays inside the square with ~2% to spare
+  }
+
+  // hover is the interaction where hover exists; where it doesn't, play once on arrival, then tap toggles
+  let played = false, t1 = 0, t2 = 0;
+  function autoplay() { if (played || reduce || hov.matches) return; played = true; t1 = setTimeout(() => setOpen(true), 700); t2 = setTimeout(() => setOpen(false), 3900); }
+  box.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') setOpen(true); });
+  box.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setOpen(false); });
+  box.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') { clearTimeout(t1); clearTimeout(t2); played = true; setOpen(!open); } });
+
+  // don't burn battery fluttering a book nobody is looking at
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      if (!visible && raf) { cancelAnimationFrame(raf); raf = null; }
+      else if (visible) { if (!atRest) kick(); autoplay(); }
+    }, { threshold: 0.02 }).observe(box);
+  } else autoplay();
+  function start() {
+    const was = reduce; reduce = rmq.matches;
+    readColors(); size();
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    if (reduce) still(); else if (was) reset();
+    draw(); if (!reduce && !atRest) kick();
+  }
+  start();
+  let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(start, 120); });
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener('change', start) : mq.addListener(start));
+  (rmq.addEventListener ? rmq.addEventListener('change', start) : rmq.addListener(start));
+  new MutationObserver(start).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; } else if (!document.hidden && !atRest) kick(); });
+})();
+</script>
+
+</body></html>
